@@ -17,6 +17,14 @@ loadLibs()
 #Obtain grid data with community level info
 kfw_points = readShapePoints("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/SethExtract_10k/kfw_10k_sample.shp")
 
+#Obtain info about points from csv
+kfw_points_csv <- read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/kfw_10k_sample_merge.csv")
+
+##Replace column names to match previous datasets and existing R code
+
+# Replace nm6k (NDVI)
+
+
 #Drop Unused Variables at community level (NDVI, temp and precip because we're using at cell level); and pop, treatment info, and community identifiers because they are NA
 kfw_grid@data <- kfw_grid@data[,-(8:744),drop=FALSE]
 
