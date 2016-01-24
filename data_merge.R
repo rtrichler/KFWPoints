@@ -18,7 +18,7 @@ loadLibs()
 kfw_points = readShapePoints("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/SethExtract_10k/kfw_10k_sample.shp")
 
 #Obtain info about points from csv
-kfw_points_csv <- read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/kfw_10k_sample_merge.csv")
+kfw_points_csv <- read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/kfw_modis_yearly_merge.csv")
 
 ##Replace column names to match previous datasets and existing R code
 
