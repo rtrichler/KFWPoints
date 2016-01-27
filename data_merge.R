@@ -5,6 +5,7 @@ library(maptools)
 library(reshape)
 library(splitstackshape)
 library(ggplot2)
+library(shapefiles)
 
 library(devtools)
 devtools::install_github("itpir/SCI@master")
@@ -14,15 +15,68 @@ library(SCI)
 # library(multiwayvcov)
 loadLibs()
 
-#Obtain grid data with community level info
+#Obtain points data as shape file
 kfw_points = readShapePoints("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/SethExtract_10k/kfw_10k_sample.shp")
 
-#Obtain info about points from csv
+##Merge in MODIS data
+
+#Obtain info about points from csv 
 kfw_points_csv <- read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/kfw_modis_yearly_merge.csv")
+#Drop duplicative columns
+kfw_points_csv <- kfw_points_csv[,-(1:3),drop=TRUE]
+#Change modis column names to MaxL_ (to work with previous R analysis code)
+names(kfw_points_csv)=gsub("kmym","MaxL",names(kfw_points_csv),fixed=TRUE)
+names(kfw_points_csv)=gsub("e","",names(kfw_points_csv),fixed=TRUE)
+#Merge modis data with shapefile
+kfw_points1= merge (kfw_points, kfw_points_csv, by.x="ad_id", by.y="ad_id")
+View(kfw_points1)
+#Drop out MaxL_2015 because it's incomplete
+MaxL_2015<-names(kfw_points1) %in% c("MaxL_2015")
+kfw_points2<-kfw_points1[!MaxL_2015]
+#Drop obs with NA as MODIS value for any year
+#kfw_points2[!complete.cases(kfw_points2@data),]
+kfw_points2<-kfw_points2[complete.cases(kfw_points2@data),]
 
-##Replace column names to match previous datasets and existing R code
+##Merge Distance to Boundaries shapefile
+distbound<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/DistanceToBoundary/kfw_10k_dist_results.csv")
+#drop duplicate columns
+distbound<-distbound[,-(1:3),drop=TRUE]
+#merge, adding HubName and HubDist
+kfw_points3=merge(kfw_points2, distbound, by.x="ad_id", by.y="ad_id")
 
-# Replace nm6k (NDVI)
+##Merge in covariates (pop, ntl, slope, elevation,temp,precip)
+covars<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/Covars/kfw_10k_sample_merge_LTDR.csv")
+#drop old LTDR NDVI values and duplicate columns
+covars<-covars[,-(32:64),drop=TRUE]
+covars<-covars[,-(1:3),drop=TRUE]
+#subset temp and precip in order to manipulate
+air_temp<-covars[c(1,29:292)]
+precip<-covars[c(1,293:556)]
+#drop temp and precip from main covars dataset
+covars<-covars[,-(29:556),drop=TRUE]
+kfw_points3=merge(kfw_points2, covars, by.x="ad_id", by.y="ad_id")
+
+#rename temp columns
+for (i in 2:length(air_temp))
+{
+  # splt <- strsplit(colnames(air_temp)[i],"_")
+  # month = splt[[1]][3]
+  # year = splt[[1]][2]
+  year = substr(colnames(air_temp)[i], 6, 9)
+  month = substr(colnames(air_temp)[i], 10, 11)
+  dt = paste(year,"-",month,sep="")
+  colnames(air_temp)[i] <- dt
+}
+
+air_temp_ts <- melt(air_temp,id="ad_id")
+air_temp_ts <- cSplit(air_temp_ts, "variable", "-")
+air_temp_ts_mean <- aggregate(value ~ variable_1 + ad_id, air_temp_ts, FUN=mean)
+air_temp_ts_max <- aggregate(value ~ variable_1 + Id, air_temp_ts, FUN=max)
+air_temp_ts_min <- aggregate(value ~ variable_1 + Id, air_temp_ts, FUN=min)
+
+air_temp_mean <- reshape(air_temp_ts_mean, idvar=c("Id"), direction="wide", timevar="variable_1")
+air_temp_max <- reshape(air_temp_ts_max, idvar=c("Id"), direction="wide", timevar="variable_1")
+air_temp_min <- reshape(air_temp_ts_min, idvar=c("Id"), direction="wide", timevar="variable_1")
 
 
 #Drop Unused Variables at community level (NDVI, temp and precip because we're using at cell level); and pop, treatment info, and community identifiers because they are NA
