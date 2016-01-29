@@ -129,8 +129,13 @@ kfw_points8=merge(kfw_points7, precip_mean, by.x="ad_id", by.y="ad_id")
 kfw_points9=merge(kfw_points8, precip_max, by.x="ad_id", by.y="ad_id")
 kfw_points10=merge(kfw_points9, precip_min, by.x="ad_id", by.y="ad_id")
 
+#Obtain grid data with community level info
+kfw_comm = read.csv("/Users/rbtrichler/Documents/AidData/Git Repos/KFW_Amazon/input_data/KFW_treatment.csv")
+#kfw_comm2001<-kfw_comm[kfw_comm$demend_y>=2001,]
+kfw_points11=merge(kfw_points10, kfw_comm, by.x="group_id", by.y="reu_id")
+names(kfw_points11)[1]="reu_id"
 
 ## Write Final Shapefile, with pre-trends
-writePointsShape(kfw_points10,"/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/kfw_points_processed.shp")
+writePointsShape(kfw_points11,"/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/kfw_points_processed.shp")
 
 
