@@ -129,13 +129,26 @@ kfw_points8=merge(kfw_points7, precip_mean, by.x="ad_id", by.y="ad_id")
 kfw_points9=merge(kfw_points8, precip_max, by.x="ad_id", by.y="ad_id")
 kfw_points10=merge(kfw_points9, precip_min, by.x="ad_id", by.y="ad_id")
 
-#Obtain grid data with community level info
+#Obtain community level info
 kfw_comm = read.csv("/Users/rbtrichler/Documents/AidData/Git Repos/KFW_Amazon/input_data/KFW_treatment.csv")
 #kfw_comm2001<-kfw_comm[kfw_comm$demend_y>=2001,]
 kfw_points11=merge(kfw_points10, kfw_comm, by.x="group_id", by.y="reu_id")
 names(kfw_points11)[1]="reu_id"
+#change area to numeric
+kfw_points11@data["terrai_are"] <- lapply(kfw_points11@data["terrai_are"], function(x) as.numeric(gsub("Ha","",x)))
+
+
+##Create pre-trends
+kfw_points12<-kfw_points11
+kfw_points12$pre_trend_MeanT <- timeRangeTrend(kfw_points12,"MeanT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_MinT <- timeRangeTrend(kfw_points12,"MinT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_MaxT <- timeRangeTrend(kfw_points12,"MaxT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_MeanP <- timeRangeTrend(kfw_points12,"MeanP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_MinP <- timeRangeTrend(kfw_points12,"MinP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_MaxP <- timeRangeTrend(kfw_points12,"MaxP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pre_trend_Pop <- timeRangeTrend(kfw_points12,"Pop_[0-9][0-9][0-9][0-9]",1990,2000,"ad_id")
 
 ## Write Final Shapefile, with pre-trends
-writePointsShape(kfw_points11,"/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/kfw_points_processed.shp")
+writePointsShape(kfw_points12,"/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/kfw_points_processed.shp")
 
 
