@@ -59,6 +59,45 @@ pModelMax_D <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_
 pModelMax_E <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + HubDistCat*TrtMnt_demend_y + factor(reu_id) + Year"
 
 
+pModelMax_A = lm(MaxL_ ~ TrtMnt_demend_y + factor(reu_id),data=psm_Long, weights=terrai_are)
+summary(pModelMax_A)
+clusterA <- cluster.vcov(pModelMax_A,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_A <- coeftest(pModelMax_A, clusterA)
+print(CMREG_A)
+
+pModelMax_B = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + factor(reu_id),
+                 data=psm_Long, weights=terrai_are)
+summary(pModelMax_B)
+clusterB <- cluster.vcov(pModelMax_B,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_B <- coeftest(pModelMax_B, clusterB)
+print(CMREG_B)
+
+pModelMax_C = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + factor(reu_id),
+                 data=psm_Long, weights=terrai_are)
+summary(pModelMax_C)
+clusterC <- cluster.vcov(pModelMax_C,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_C <- coeftest(pModelMax_C, clusterC)
+print(CMREG_C)
+
+pModelMax_D = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
+                   TrtMnt_demend_y*HubDist + factor(reu_id),
+                 data=psm_Long, weights=terrai_are)
+summary(pModelMax_D)
+clusterD <- cluster.vcov(pModelMax_D,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_D <- coeftest(pModelMax_D, clusterD)
+print(CMREG_D)
+
+pModelMax_E = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
+                   TrtMnt_demend_y*HubDistCat + factor(reu_id),
+                 data=psm_Long, weights=terrai_are)
+summary(pModelMax_E)
+clusterE <- cluster.vcov(pModelMax_E,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_E <- coeftest(pModelMax_E, clusterE)
+print(CMREG_E)
+
+
+
+
 pModelMax_A_fit <- Stage2PSM(pModelMax_A ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
 pModelMax_B_fit <- Stage2PSM(pModelMax_B ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
 pModelMax_C_fit <- Stage2PSM(pModelMax_C ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
@@ -95,4 +134,14 @@ stargazer(pModelMax_A_fit $cmreg,pModelMax_B_fit $cmreg,pModelMax_C_fit $cmreg,p
           title="Regression Results",
           dep.var.labels=c("Max NDVI")
 )
+
+stargazer(CMREG_A,
+          type="html",align=TRUE,#keep=c("TrtMnt","MeanT_","MeanP_","Pop_","MaxT_","MaxP_","MinT_","MinP_","Year"),
+          #covariate.labels=c("TrtMnt_demend_y","MeanT","MeanP","Pop","MaxT","MaxP","MinT","MinP","Year"),
+          omit.stat=c("f","ser"),
+          title="Regression Results",
+          dep.var.labels=c("Max NDVI")
+)
+
+
 
