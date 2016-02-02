@@ -37,10 +37,12 @@ write.csv(psm_Long,file="/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW
 psm_Long= read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/psm_Long.csv")
 
 #merge in distance to boundary
-distbound<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/DistanceToBoundary/kfw_10k_dist_results.csv")
-distbound<-distbound[,-(1:3),drop=TRUE]
-psm_Long_distbound= merge(psm_Long, distbound,by.x="ad_id", by.y="ad_id")
-psm_Long <- psm_Long_distbound
+# distbound<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/DistanceToBoundary/kfw_10k_dist_results.csv")
+# distbound<-distbound[,-(1:3),drop=TRUE]
+# psm_Long_distbound= merge(psm_Long, distbound,by.x="ad_id", by.y="ad_id")
+# psm_Long <- psm_Long_distbound
+#change terrai_are to numeric
+psm_Long["terrai_are"] <- lapply(psm_Long["terrai_are"], function(x) as.numeric(gsub("Ha","",x)))
 
 #create categorical variable for distance to boundary
 psm_Long$HubDistCat<-0

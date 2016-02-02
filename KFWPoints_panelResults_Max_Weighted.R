@@ -36,28 +36,19 @@ psm_Long$Year <- as.numeric(psm_Long$Year)
 write.csv(psm_Long,file="/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/psm_Long.csv")
 psm_Long= read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/psm_Long.csv")
 
-#merge in distance to boundary
-distbound<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/DistanceToBoundary/kfw_10k_dist_results.csv")
-distbound<-distbound[,-(1:3),drop=TRUE]
-psm_Long_distbound= merge(psm_Long, distbound,by.x="ad_id", by.y="ad_id")
-psm_Long <- psm_Long_distbound
-
 #create categorical variable for distance to boundary
 psm_Long$HubDistCat<-0
 psm_Long$HubDistCat[psm_Long$HubDist>5]<-1
+
+#create arc of deforestation variable
+psm_Long$arc<-0
+psm_Long$arc[which(psm_Long$UF=="PA" | psm_Long$UF=="TO")] <- 1
 
 #-------------------------------------------------
 #-------------------------------------------------
 #Run Panel Models
 #-------------------------------------------------
 #-------------------------------------------------
-
-pModelMax_A <- "MaxL_ ~ TrtMnt_demend_y + factor(reu_id)"
-pModelMax_B <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_  + factor(reu_id) "
-pModelMax_C <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_  + factor(reu_id) + Year"
-pModelMax_D <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + HubDist*TrtMnt_demend_y + factor(reu_id) + Year"
-pModelMax_E <- "MaxL_ ~ TrtMnt_demend_y + MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + HubDistCat*TrtMnt_demend_y + factor(reu_id) + Year"
-
 
 pModelMax_A = lm(MaxL_ ~ TrtMnt_demend_y + factor(reu_id),data=psm_Long, weights=terrai_are)
 summary(pModelMax_A)
@@ -95,14 +86,13 @@ clusterE <- cluster.vcov(pModelMax_E,cbind(psm_Long$reu_id,psm_Long$Year),force_
 CMREG_E <- coeftest(pModelMax_E, clusterE)
 print(CMREG_E)
 
-
-
-
-pModelMax_A_fit <- Stage2PSM(pModelMax_A ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
-pModelMax_B_fit <- Stage2PSM(pModelMax_B ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
-pModelMax_C_fit <- Stage2PSM(pModelMax_C ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
-pModelMax_D_fit <- Stage2PSM(pModelMax_D ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
-pModelMax_E_fit <- Stage2PSM(pModelMax_E ,psm_Long,type="cmreg", table_out=TRUE, opts=c("reu_id","Year"))
+# pModelMax_F = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
+#                    TrtMnt_demend_y*arc*HubDist + factor(reu_id),
+#                  data=psm_Long, weights=terrai_are)
+# summary(pModelMax_F)
+# clusterF <- cluster.vcov(pModelMax_F,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+# CMREG_F <- coeftest(pModelMax_F, clusterF)
+# print(CMREG_F)
 
 #-----------------------------
 #Look at Arc of Deforestation
@@ -135,8 +125,8 @@ stargazer(pModelMax_A_fit $cmreg,pModelMax_B_fit $cmreg,pModelMax_C_fit $cmreg,p
           dep.var.labels=c("Max NDVI")
 )
 
-stargazer(CMREG_A,
-          type="html",align=TRUE,#keep=c("TrtMnt","MeanT_","MeanP_","Pop_","MaxT_","MaxP_","MinT_","MinP_","Year"),
+stargazer(CMREG_A,CMREG_B,CMREG_C,CMREG_D,CMREG_E,
+          type="html",align=TRUE,keep=c("TrtMnt","MeanT_","MeanP_","Pop_","MaxT_","MaxP_","MinT_","MinP_","Year"),
           #covariate.labels=c("TrtMnt_demend_y","MeanT","MeanP","Pop","MaxT","MaxP","MinT","MinP","Year"),
           omit.stat=c("f","ser"),
           title="Regression Results",
