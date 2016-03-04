@@ -70,21 +70,29 @@ clusterC <- cluster.vcov(pModelMax_C,cbind(psm_Long$reu_id,psm_Long$Year),force_
 CMREG_C <- coeftest(pModelMax_C, clusterC)
 print(CMREG_C)
 
-pModelMax_D = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
-                   TrtMnt_demend_y*HubDist + factor(reu_id),
+pModelMax_D = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + factor(Year) + factor(reu_id),
                  data=psm_Long, weights=terrai_are)
 summary(pModelMax_D)
 clusterD <- cluster.vcov(pModelMax_D,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
 CMREG_D <- coeftest(pModelMax_D, clusterD)
 print(CMREG_D)
 
-pModelMax_E = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
-                   TrtMnt_demend_y*HubDistCat + factor(reu_id),
+pModelMax_E = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + 
+                   TrtMnt_demend_y*HubDist + factor(reu_id)+factor(Year),
                  data=psm_Long, weights=terrai_are)
 summary(pModelMax_E)
 clusterE <- cluster.vcov(pModelMax_E,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
 CMREG_E <- coeftest(pModelMax_E, clusterE)
 print(CMREG_E)
+
+pModelMax_F = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_  + 
+                   TrtMnt_demend_y*HubDistCat + factor(reu_id)+ factor(Year),
+                 data=psm_Long, weights=terrai_are)
+summary(pModelMax_F)
+clusterF <- cluster.vcov(pModelMax_F,cbind(psm_Long$reu_id,psm_Long$Year),force_posdef=TRUE)
+CMREG_F <- coeftest(pModelMax_F, clusterF)
+print(CMREG_F)
+
 
 # pModelMax_F = lm(MaxL_ ~ TrtMnt_demend_y+ MeanT_ + MeanP_ + Pop_ + MaxT_ + MaxP_ + MinT_ + MinP_ + Year + 
 #                    TrtMnt_demend_y*arc*HubDist + factor(reu_id),
@@ -126,6 +134,7 @@ sd(dta_Shp@data$MaxL_2000)
 #------------------------------------------------------------------------
 #------------------------------------------------------------------------
 
+##set stargazer options
 stargazer(pModelMax_A_fit $cmreg,pModelMax_B_fit $cmreg,pModelMax_C_fit $cmreg,pModelMax_D_fit$cmreg,
           pModelMax_E_fit$cmreg,
           type="html",align=TRUE,keep=c("TrtMnt","MeanT_","MeanP_","Pop_","MaxT_","MaxP_","MinT_","MinP_","Year"),
@@ -134,6 +143,21 @@ stargazer(pModelMax_A_fit $cmreg,pModelMax_B_fit $cmreg,pModelMax_C_fit $cmreg,p
           title="Regression Results",
           dep.var.labels=c("Max NDVI")
 )
+
+stargazer(CMREG_A,CMREG_B,CMREG_C,CMREG_D,CMREG_E,CMREG_F, CMREG_G, CMREG_H,
+          type="html",align=TRUE,keep=c("TrtMnt","Pop_","MeanT_","MeanP_","MaxT_","MaxP_","MinT_","MinP_","Year"),
+          #covariate.labels=c("Treatment (Demarcation)","Population","Mean Temp","Mean Precip",
+          #                   "Max Temp","Max Precip","Min Temp","Min Precip","Year","Treatment*Boundary Distance",
+          #                   "Treatment*Boundary Distance(Cat)"),
+          add.lines=list(c("Observations","148,230","148,230","148,230","148,230","148,230","148,230","148,230","148,230"),
+                         c("Year Fixed Effects?","No","No","No","No","No","Yes","Yes","Yes")),
+          omit.stat=c("f","ser"),
+          title="Regression Results",
+          dep.var.labels=c("Max NDVI")
+)
+
+
+##output tables directly to word doc
 
 library(R2HTML)
 library(stargazer)
@@ -147,13 +171,18 @@ tDF <- data.frame(red, green, blue)
 testModel <- lm(red~blue + green, data=tDF)
 testModel2 <- lm(blue ~ green + red, data=tDF)
 
-table_1<-stargazer(CMREG_A,CMREG_B,CMREG_C,CMREG_D,CMREG_E,
-          type="html",align=TRUE,keep=c("TrtMnt","MeanT_","MeanP_","Pop_","MaxT_","MaxP_","MinT_","MinP_","Year"),
-          #covariate.labels=c("TrtMnt_demend_y","MeanT","MeanP","Pop","MaxT","MaxP","MinT","MinP","Year"),
+table_1<-stargazer(CMREG_A,CMREG_B,CMREG_C,CMREG_D,CMREG_E,CMREG_F,
+          type="html",align=TRUE,keep=c("TrtMnt","Pop_","MeanT_","MeanP_","MaxT_","MaxP_","MinT_","MinP_","Year"),
+          covariate.labels=c("Treatment (Demarcation)","Population","Mean Temp","Mean Precip",
+                             "Max Temp","Max Precip","Min Temp","Min Precip","Year"),
+          add.lines=list(c("Observations","148,230","148,230","148,230","148,230","148,230","148,230"),
+                         c("Community Fixed Effects?","Yes","Yes","Yes","Yes","Yes","Yes"),
+                         c("Year Fixed Effects?","No","No","No","Yes","Yes","Yes")),
           omit.stat=c("f","ser"),
           title="Regression Results",
           dep.var.labels=c("Max NDVI")
 )
+
 
 #Put the directory and name you want.  Make sure the name ends
 #in ".doc".
