@@ -69,6 +69,41 @@ names(covars_names)=gsub("slv_","Elevation",names(covars_names),fixed=TRUE)
 names(covars_names)=gsub("droa_","Road_dist",names(covars_names),fixed=TRUE)
 kfw_points4=merge(kfw_points3, covars_names, by.x="ad_id", by.y="ad_id")
 
+#add in gpw4 pop estimates (not available for original data merge, added in later)
+gpw4<-read.csv("/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/Covars/merge_kfw_10k_sample_gpw4.csv")
+gpw4<-gpw4[,c("ad_id","gpw_v4_density.2005.mean","gpw_v4_density.2010.mean","gpw_v4_density.2015.mean")]
+names(gpw4)=gsub("gpw_v4_density.","Pop_",names(gpw4),fixed=TRUE)
+names(gpw4)=gsub(".mean","",names(gpw4),fixed=TRUE)
+kfw_points4.1=merge(kfw_points4,gpw4)
+
+#interpolate pop data to create yearly values
+#2000-2005
+kfw_points4.1$Pop_2000.05<-(kfw_points4.1$Pop_2005-kfw_points4.1$Pop_2000)/5
+kfw_points4.1$Pop_2001<-kfw_points4.1$Pop_2000+kfw_points4.1$Pop_2000.05
+kfw_points4.1$Pop_2002<-kfw_points4.1$Pop_2001+kfw_points4.1$Pop_2000.05
+kfw_points4.1$Pop_2003<-kfw_points4.1$Pop_2002+kfw_points4.1$Pop_2000.05
+kfw_points4.1$Pop_2004<-kfw_points4.1$Pop_2003+kfw_points4.1$Pop_2000.05
+#2005-2010
+kfw_points4.1$Pop_2005.10<-(kfw_points4.1$Pop_2010-kfw_points4.1$Pop_2005)/5
+kfw_points4.1$Pop_2006<-kfw_points4.1$Pop_2005+kfw_points4.1$Pop_2005.10
+kfw_points4.1$Pop_2007<-kfw_points4.1$Pop_2006+kfw_points4.1$Pop_2005.10
+kfw_points4.1$Pop_2008<-kfw_points4.1$Pop_2007+kfw_points4.1$Pop_2005.10
+kfw_points4.1$Pop_2009<-kfw_points4.1$Pop_2008+kfw_points4.1$Pop_2005.10
+#2010-2014
+kfw_points4.1$Pop_2010.15<-(kfw_points4.1$Pop_2015-kfw_points4.1$Pop_2010)/5
+kfw_points4.1$Pop_2011<-kfw_points4.1$Pop_2010+kfw_points4.1$Pop_2010.15
+kfw_points4.1$Pop_2012<-kfw_points4.1$Pop_2011+kfw_points4.1$Pop_2010.15
+kfw_points4.1$Pop_2013<-kfw_points4.1$Pop_2012+kfw_points4.1$Pop_2010.15
+kfw_points4.1$Pop_2014<-kfw_points4.1$Pop_2013+kfw_points4.1$Pop_2010.15
+#drop unused pop columns
+kfw_points4.1<-kfw_points4.1[,-grep("(Pop_2000.05)",names(kfw_points4.1))]
+kfw_points4.1<-kfw_points4.1[,-grep("(Pop_2005.10)",names(kfw_points4.1))]
+kfw_points4.1<-kfw_points4.1[,-grep("(Pop_2010.15)",names(kfw_points4.1))]
+kfw_points4.1<-kfw_points4.1[,-grep("(Pop_2015)",names(kfw_points4.1))]
+
+kfw_points4<-kfw_points4.1
+
+
 ##get temp data (min, max, mean) by year
 for (i in 2:length(air_temp))
 {
@@ -140,13 +175,13 @@ kfw_points11@data["terrai_are"] <- lapply(kfw_points11@data["terrai_are"], funct
 
 ##Create pre-trends
 kfw_points12<-kfw_points11
-kfw_points12$pre_trend_MeanT <- timeRangeTrend(kfw_points12,"MeanT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_MinT <- timeRangeTrend(kfw_points12,"MinT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_MaxT <- timeRangeTrend(kfw_points12,"MaxT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_MeanP <- timeRangeTrend(kfw_points12,"MeanP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_MinP <- timeRangeTrend(kfw_points12,"MinP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_MaxP <- timeRangeTrend(kfw_points12,"MaxP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
-kfw_points12$pre_trend_Pop <- timeRangeTrend(kfw_points12,"Pop_[0-9][0-9][0-9][0-9]",1990,2000,"ad_id")
+kfw_points12$pt_MeanT <- timeRangeTrend(kfw_points12,"MeanT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_MinT <- timeRangeTrend(kfw_points12,"MinT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_MaxT <- timeRangeTrend(kfw_points12,"MaxT_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_MeanP <- timeRangeTrend(kfw_points12,"MeanP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_MinP <- timeRangeTrend(kfw_points12,"MinP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_MaxP <- timeRangeTrend(kfw_points12,"MaxP_[0-9][0-9][0-9][0-9]",1982,2000,"ad_id")
+kfw_points12$pt_Pop <- timeRangeTrend(kfw_points12,"Pop_[0-9][0-9][0-9][0-9]",1990,2000,"ad_id")
 
 ## Write Final Shapefile, with pre-trends
 writePointsShape(kfw_points12,"/Users/rbtrichler/Documents/AidData/KFW Brazil Eval/KFW_Points/ProcessedData/kfw_points_processed.shp")
