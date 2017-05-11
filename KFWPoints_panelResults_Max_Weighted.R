@@ -207,6 +207,7 @@ stargazer(CMREG_A,CMREG_B,CMREG_C,CMREG_D,CMREG_E,CMREG_F,
                                   c("Year Fixed Effects?","No","No","No","Yes","Yes","Yes")),
                    omit.stat=c("f","ser"),
                    title="Regression Results",
+                   star.cutoffs = c(0.05, 0.01, 0.001),
                    dep.var.labels=c("Max NDVI")
 )
 
